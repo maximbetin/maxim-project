@@ -6,7 +6,7 @@ services:
       # The build path
       context: .
     ports:
-      # Maps the conainter:host ports
+      # Maps the Host:Container ports
       - 80:80 
   unit-tests:
     environment:
@@ -15,7 +15,7 @@ services:
     # Mount the existing volumes to the container 
     volumes: 
       # Mount current directory to app. Will make the tests available to the container
-      - "$PWD:/app"  
+      - ".:/app"  
     build:
       # Image for RSpec Unit tests
       context: .
@@ -31,7 +31,7 @@ services:
       SELENIUM_PORT: 4444
       WEBSITE_URL: maximexplorecalifornia.org.s3-website-eu-west-1.amazonaws.com
     volumes:
-      - "$PWD:/app"
+      - ".:/app"
     build:
       context: .
       dockerfile: rspec.dockerfile
@@ -44,7 +44,7 @@ services:
     # The Selenium image to use
     image: selenium/standalone-chrome-debug
     ports:
-      # Container:Host
+      # Host:Container
       - 4444:4444
       # VNC Server ports
       - 5901:5900
@@ -55,7 +55,7 @@ services:
       # Provide the Dockerfile
       dockerfile: terraform.dockerfile
     volumes:
-      - $PWD:/app
+      - ".:/app"
     working_dir: /app
     # AWS access credentials and default deployment region
     env_file: .env
@@ -69,7 +69,7 @@ services:
     # Get the AWS CLI image
     image: organs/awscli
     volumes:
-      - $PWD:/app
+      - ".:/app"
     working_dir: /app
     # AWS access credentials and default deployment region
     env_file: .env
@@ -79,3 +79,17 @@ services:
       #AWS_SECRET_ACCESS_KEY: <redacted>
       #AWS_REGION: eu-west-1
       #AWS_DEFAULT_REGION: eu-west-1      
+  jenkins:
+    build:
+      context: .
+      dockerfile: jenkins.dockerfile
+    # The directory where Jenkins' metadata resides
+    volumes: 
+      # Host directory:Container directory
+      - "./jenkins_home:/var/jenkins_home"
+      # To make the project available to the Docker container
+      # Usually Git is used instead
+      - ".:/app"
+    ports:
+      # Host:Container
+      - 8080:8080
