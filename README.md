@@ -1,4 +1,4 @@
-# maxim-terraform WiP
+# Terraform - RSpec - AWS S3 - Jenkins CI/CD demo
 
 This is a demo website called `explorecalifornia.org` on which I run tests, upload to AWS S3 and run a CI/CD pipeline with Jenkins, all using Docker Compose.
 
@@ -58,4 +58,50 @@ When it comes to deploying the website to a production-like environment, Configu
 
 Terraform will look for the state file to see what was created before and compare against what we have locally and what provisioning differences we need to make. It tracks the information in the file. When you change your Terraform file, it knows what needs to be created or destroyed. 
 
+## CI/CD as Code with Jenkins
+
+Now it’s time to think about CI/CD. It will allow us to run tests and other states on every commit so we can mitigate the chances of pushing a bad build. An automated alternative to manual and error-prone ways of releasing in the pre-DevOps world. We will use the commonly seen Jenkins for that. 
+
+- To pull and spin up the Jenkins image:
+
+`docker-compose up -d jenkins`
+
+If password is not displayed run `docker exec <container-id> cat /var/jenkins_home/secrets/initialAdminPassword` to find it.
+
+- Jenkins plugins:
+
+  - `workflow-aggregator` is Jenkins’ pipelines as code service.
+  - `seed` To find Jenkinsfiles within the projects and import them.
+  - `git` Allows the use of git.
+
+- We are going to use a declarative, Git, Multibranch type Jenkins pipeline in the `Jenkinsfile`:
+
+```
+pipeline {
+  # Any agent on any slave to build this job
+  agent any
+  # Stages that need to run
+  stages {
+    stage('Build the website') {
+      steps{
+        # When a Jenkins slave runs this, it's going to open up a shell and run the script
+        sh "scripts/build.sh"
+      }
+    }
+
+    stage('Run Unit Tests'){
+      steps{
+        sh "scripts/unit_tests.sh"
+      }
+    }
+
+    stage('Deploy the website'){
+      steps{
+        sh "scripts/deploy_website.sh"                                                                                   }
+    }
+  }
+}
+```
+
+All in all, we run the website locally, test it, add automated CI/CD with Jenkins and deploy it to AWS S3 with Terraform.
 
