@@ -1,0 +1,81 @@
+version: '3.7'
+services:
+  # Name of the service
+  website:
+    build: 
+      # The build path
+      context: .
+    ports:
+      # Maps the conainter:host ports
+      - 80:80 
+  unit-tests:
+    environment:
+      SELENIUM_HOST: selenium
+      SELENIUM_PORT: 4444
+    # Mount the existing volumes to the container 
+    volumes: 
+      # Mount current directory to app. Will make the tests available to the container
+      - "$PWD:/app"  
+    build:
+      # Image for RSpec Unit tests
+      context: .
+      # Different name for the RSpec Dockerfile
+      dockerfile: rspec.dockerfile
+    # Additional options for ENTRYPOINT to run Unit tests
+    command:
+      - --pattern
+      - app/spec/unit/*_spec.rb
+  integration-tests:
+    environment:
+      SELENIUM_HOST: selenium
+      SELENIUM_PORT: 4444
+      WEBSITE_URL: maximexplorecalifornia.org.s3-website-eu-west-1.amazonaws.com
+    volumes:
+      - "$PWD:/app"
+    build:
+      context: .
+      dockerfile: rspec.dockerfile
+    command:
+      - --pattern
+      # The only difference between unit/integration config is the folder
+      - app/spec/integration/*_spec.rb 
+  # Create the Selenium service
+  selenium:
+    # The Selenium image to use
+    image: selenium/standalone-chrome-debug
+    ports:
+      # Container:Host
+      - 4444:4444
+      # VNC Server ports
+      - 5901:5900
+  # Build Terraform service
+  terraform:
+    build:
+      context: .
+      # Provide the Dockerfile
+      dockerfile: terraform.dockerfile
+    volumes:
+      - $PWD:/app
+    working_dir: /app
+    # AWS access credentials and default deployment region
+    env_file: .env
+    # Otherwise if not using .env use:
+    #environment:
+      #AWS_ACCESS_KEY_ID: <redacted>
+      #AWS_SECRET_ACCESS_KEY: <redacted>
+      #AWS_REGION: eu-west-1
+      #AWS_DEFAULT_REGION: eu-west-1
+  aws:
+    # Get the AWS CLI image
+    image: organs/awscli
+    volumes:
+      - $PWD:/app
+    working_dir: /app
+    # AWS access credentials and default deployment region
+    env_file: .env
+    # Otherwise if not using .env use:
+    #environment: 
+      #AWS_ACCESS_KEY_ID: <redacted>
+      #AWS_SECRET_ACCESS_KEY: <redacted>
+      #AWS_REGION: eu-west-1
+      #AWS_DEFAULT_REGION: eu-west-1      
