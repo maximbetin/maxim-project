@@ -71,8 +71,8 @@ If password is not displayed run `docker exec <container-id> cat /var/jenkins_ho
 - Jenkins plugins:
 
   - `workflow-aggregator` is Jenkins’ pipelines as code service.
-  - `seed` To find Jenkinsfiles within the projects and import them.
-  - `git` Allows the use of git.
+  - `seed` to find Jenkinsfiles within the projects and import them.
+  - `git` allows the use of git.
 
 - We are going to use a declarative, Git, Multibranch type Jenkins pipeline in the `Jenkinsfile`:
 
